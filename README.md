@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Origin Badminton Session Manager
 
-## Getting Started
+Next.js MVP for live badminton session operations:
 
-First, run the development server:
+- Active / ghost courts and bench queue
+- Result recording with strict badminton score validation
+- Elo-style MMR updates (K=24), admin-editable MMR
+- Bench match suggestion (wait time + MMR spread)
+- Finish session with snapshot vs abandon
+
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+App: [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Create **`.env.local`** (not committed) with at least:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **`DATABASE_URL`** — Neon pooled Postgres URL
+- **`SESSION_SECRET`** — long random string (cookies / JWT)
+- **`SEED_ADMIN_PASSWORD`** — for `npx tsx scripts/seed.ts`
+- **`SEED_BULK_PLAYERS_PASSWORD`** or **`SEED_PLAYER_PASSWORD`** — for `npm run seed:players24` (see script headers)
 
-## Learn More
+Neon smoke check (no auth): `GET /api/health/db`.
 
-To learn more about Next.js, take a look at the following resources:
+## Database (Neon + Drizzle)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`DATABASE_URL` must be set for the app, Drizzle Kit (`db:push`), and seed scripts.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Where the schema lives**
 
-## Deploy on Vercel
+- **`src/db/schema.ts`** — source of truth: all tables/columns the app and Drizzle ORM use.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**What the `drizzle/` folder is**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- SQL migration files + `meta/` journal produced by **Drizzle Kit** (`npm run db:generate`).
+- Use them if you apply versioned migrations; or use **`npm run db:push`** to sync `schema.ts` straight to the DB (no hand-written SQL).
+
+Scripts:
+
+- `npm run db:generate` — generate a new migration from `schema.ts` changes
+- `npm run db:push` — push schema to Neon (dev-friendly)
+- `npm run db:studio` — Drizzle Studio
+
+**Seeding**
+
+```bash
+# Org + admin (+ optional demo players). Requires SEED_ADMIN_PASSWORD, DATABASE_URL.
+npx tsx scripts/seed.ts
+
+# 24 player accounts. Requires SEED_BULK_PLAYERS_PASSWORD (or SEED_PLAYER_PASSWORD), DATABASE_URL.
+npm run seed:players24
+```
+
+Also set `SESSION_SECRET` (and related auth env) as needed for login in your environment.
