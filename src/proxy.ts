@@ -8,7 +8,7 @@ function isProtectedApi(pathname: string) {
   return pathname.startsWith("/api/club") || pathname.startsWith("/api/org");
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (pathname.startsWith("/login")) return NextResponse.next();

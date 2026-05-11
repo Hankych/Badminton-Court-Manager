@@ -1,7 +1,7 @@
-import type { ActiveCourt, GhostCourt, SessionMember, User } from "@/lib/types";
+import type { ActiveCourt, GhostCourt, SessionMember } from "@/lib/types";
 import type { BoardState } from "@/lib/types";
 import { CLUB_COURT_COUNT } from "./constants";
-import { emptyActiveCourts, emptyGhostCourts, makeEmptySlots } from "./queue-promotion";
+import { emptyActiveCourts, emptyGhostCourts } from "./queue-promotion";
 
 export type PlacementRow = {
   profileId: string;
@@ -23,7 +23,6 @@ export type RosterRow = {
 export function liveBoardFromPlacements(
   placements: PlacementRow[],
   roster: RosterRow[],
-  usersById: Map<string, User>,
 ): { activeCourts: ActiveCourt[]; ghostCourts: GhostCourt[]; sessionMembers: SessionMember[] } {
   const activeCourts = emptyActiveCourts();
   const ghostCourts = emptyGhostCourts();

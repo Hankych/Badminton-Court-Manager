@@ -1,7 +1,7 @@
 import { and, eq, ne } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/db";
-import { profiles } from "@/db/schema";
+import { matchResults, profiles } from "@/db/schema";
 import { getSessionFromCookies } from "@/lib/auth/get-session";
 import { hashPassword } from "@/lib/auth/password";
 
@@ -123,12 +123,35 @@ export async function DELETE(_request: Request, ctx: Ctx) {
     .where(and(eq(profiles.id, profileId), eq(profiles.organizationId, auth.oid)))
     .limit(1);
   if (!existing) {
-    return NextResponse.json({ error: "not_found" }, { status: 404 });
+    return NextResponse.json({ ok: true });
   }
   if (existing.role === "admin") {
     return NextResponse.json({ error: "cannot_delete_admin" }, { status: 400 });
   }
 
-  await db.delete(profiles).where(eq(profiles.id, profileId));
+  try {
+    await db.transaction(async (tx) => {
+      await tx
+        .update(matchResults)
+        .set({ slot1ProfileId: null })
+        .where(eq(matchResults.slot1ProfileId, profileId));
+      await tx
+        .update(matchResults)
+        .set({ slot2ProfileId: null })
+        .where(eq(matchResults.slot2ProfileId, profileId));
+      await tx
+        .update(matchResults)
+        .set({ slot3ProfileId: null })
+        .where(eq(matchResults.slot3ProfileId, profileId));
+      await tx
+        .update(matchResults)
+        .set({ slot4ProfileId: null })
+        .where(eq(matchResults.slot4ProfileId, profileId));
+      await tx.delete(profiles).where(eq(profiles.id, profileId));
+    });
+  } catch (e) {
+    console.error("DELETE profile", profileId, e);
+    return NextResponse.json({ error: "delete_failed" }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

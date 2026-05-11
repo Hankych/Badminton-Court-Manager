@@ -54,7 +54,7 @@ export function PasswordField({ id: idProp, value, onChange, autoComplete, place
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
-        className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 touch-manipulation items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline focus-visible:ring-2 focus-visible:ring-emerald-500"
+        className="absolute right-1 top-1/2 flex size-9 -translate-y-1/2 touch-manipulation items-center justify-center rounded-md border-0 bg-transparent text-zinc-500 transition hover:bg-zinc-100/70 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
         aria-label={visible ? "Hide password" : "Show password"}
       >
         {visible ? <IconEyeOff className="size-5" /> : <IconEye className="size-5" />}

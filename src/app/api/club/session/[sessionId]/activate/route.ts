@@ -27,27 +27,26 @@ export async function POST(_request: Request, ctx: Ctx) {
   }
 
   const rosterRows = await db.select().from(sessionRoster).where(eq(sessionRoster.sessionId, sessionId));
-  if (rosterRows.length === 0) {
-    return NextResponse.json({ error: "roster_empty" }, { status: 400 });
-  }
-
-  const now = new Date();
-  await db
-    .update(sessionRoster)
-    .set({ benchEnteredAt: now })
-    .where(eq(sessionRoster.sessionId, sessionId));
 
   await db.delete(sessionPlacements).where(eq(sessionPlacements.sessionId, sessionId));
 
-  await db.insert(sessionPlacements).values(
-    rosterRows.map((r) => ({
-      sessionId,
-      profileId: r.profileId,
-      kind: "bench" as const,
-      courtIndex: null,
-      slotNumber: null,
-    })),
-  );
+  if (rosterRows.length > 0) {
+    const now = new Date();
+    await db
+      .update(sessionRoster)
+      .set({ benchEnteredAt: now })
+      .where(eq(sessionRoster.sessionId, sessionId));
+
+    await db.insert(sessionPlacements).values(
+      rosterRows.map((r) => ({
+        sessionId,
+        profileId: r.profileId,
+        kind: "bench" as const,
+        courtIndex: null,
+        slotNumber: null,
+      })),
+    );
+  }
 
   await db
     .update(clubSessions)

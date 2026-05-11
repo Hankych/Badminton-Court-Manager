@@ -14,7 +14,16 @@ const ORG_NAME = "Origin";
 
 type Ctx = { params: Promise<{ sessionId: string }> };
 
-export async function POST(_request: Request, ctx: Ctx) {
+function serverDateLabel(): string {
+  const now = new Date();
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+export async function POST(request: Request, ctx: Ctx) {
   const auth = await getSessionFromCookies();
   if (!auth || auth.role !== "admin") {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
@@ -35,11 +44,17 @@ export async function POST(_request: Request, ctx: Ctx) {
   }
 
   const roster = await db.select().from(sessionRoster).where(eq(sessionRoster.sessionId, sessionId));
-  if (roster.length === 0) {
-    return NextResponse.json({ error: "empty_roster" }, { status: 400 });
-  }
 
-  const dateLabel = new Date().toISOString().slice(0, 10);
+  let body: { snapshotDate?: string } = {};
+  try {
+    body = (await request.json()) as { snapshotDate?: string };
+  } catch {
+    body = {};
+  }
+  const browserDate = typeof body.snapshotDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.snapshotDate)
+    ? body.snapshotDate
+    : null;
+  const dateLabel = browserDate ?? serverDateLabel();
   const baseName = `${ORG_NAME}_${dateLabel}`;
   const sameDay = await db
     .select()
@@ -61,14 +76,16 @@ export async function POST(_request: Request, ctx: Ctx) {
 
     if (!snap) throw new Error("snapshot_insert");
 
-    for (const r of roster) {
-      await tx.insert(snapshotPlayerStats).values({
-        snapshotId: snap.id,
-        profileId: r.profileId,
-        matchesPlayed: r.gamesPlayed,
-        wins: r.wins,
-        losses: r.losses,
-      });
+    if (roster.length > 0) {
+      for (const r of roster) {
+        await tx.insert(snapshotPlayerStats).values({
+          snapshotId: snap.id,
+          profileId: r.profileId,
+          matchesPlayed: r.gamesPlayed,
+          wins: r.wins,
+          losses: r.losses,
+        });
+      }
     }
 
     await tx

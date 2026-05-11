@@ -1,58 +1,113 @@
-# Origin Badminton Session Manager
+# Origin Badminton Court Manager
 
-Next.js MVP for live badminton session operations:
+Next.js app for managing live badminton sessions with admin/player views, persisted court state, match recording, MMR updates, and session history.
 
-- Active / ghost courts and bench queue
-- Result recording with strict badminton score validation
-- Elo-style MMR updates (K=24), admin-editable MMR
-- Bench match suggestion (wait time + MMR spread)
-- Finish session with snapshot vs abandon
+## Features
 
-## Local development
+- Admin login and player login
+- Live session creation with an empty roster
+- Manage Players tab for creating/editing/deleting player accounts
+- Add/remove players from the current session while it is live
+- Active courts, queue courts, and bench tracking
+- Drag/drop players between bench, queue, and active courts
+- Bench player multi-select with active/queue court placement
+- Bench match suggestion based on wait time and MMR spread
+- Match result recording with badminton score validation
+- Team-average Elo-style MMR updates
+- Queue promotion after a match is recorded
+- Session snapshots and player history
+- Polling-based live refresh so admin/player accounts see current board state
+
+## Tech Stack
+
+- Next.js App Router
+- React
+- TypeScript
+- Tailwind CSS
+- Neon Postgres
+- Drizzle ORM
+- Cookie-based login
+
+## Local Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-App: [http://localhost:3000](http://localhost:3000).
+App: [http://localhost:3000](http://localhost:3000)
 
-Create **`.env.local`** (not committed) with at least:
+## Environment
 
-- **`DATABASE_URL`** — Neon pooled Postgres URL
-- **`SESSION_SECRET`** — long random string (cookies / JWT)
-- **`SEED_ADMIN_PASSWORD`** — for `npx tsx scripts/seed.ts`
-- **`SEED_BULK_PLAYERS_PASSWORD`** or **`SEED_PLAYER_PASSWORD`** — for `npm run seed:players24` (see script headers)
+Create `.env.local`:
 
-Neon smoke check (no auth): `GET /api/health/db`.
+```env
+DATABASE_URL=...
+SESSION_SECRET=...
+SEED_ADMIN_PASSWORD=...
+SEED_BULK_PLAYERS_PASSWORD=...
+```
 
-## Database (Neon + Drizzle)
+Notes:
 
-`DATABASE_URL` must be set for the app, Drizzle Kit (`db:push`), and seed scripts.
+- `DATABASE_URL` is required for the app, Drizzle, and seed scripts.
+- `SESSION_SECRET` must be at least 16 characters.
+- `SEED_BULK_PLAYERS_PASSWORD` is used by `npm run seed:players24`.
+- `SEED_PLAYER_PASSWORD` can be used as a fallback for bulk player seeding.
 
-**Where the schema lives**
+## Database
 
-- **`src/db/schema.ts`** — source of truth: all tables/columns the app and Drizzle ORM use.
+Schema source of truth:
 
-**What the `drizzle/` folder is**
+- `src/db/schema.ts`
 
-- SQL migration files + `meta/` journal produced by **Drizzle Kit** (`npm run db:generate`).
-- Use them if you apply versioned migrations; or use **`npm run db:push`** to sync `schema.ts` straight to the DB (no hand-written SQL).
+Drizzle migrations:
 
-Scripts:
+- `drizzle/`
 
-- `npm run db:generate` — generate a new migration from `schema.ts` changes
-- `npm run db:push` — push schema to Neon (dev-friendly)
-- `npm run db:studio` — Drizzle Studio
-
-**Seeding**
+Useful commands:
 
 ```bash
-# Org + admin (+ optional demo players). Requires SEED_ADMIN_PASSWORD, DATABASE_URL.
-npx tsx scripts/seed.ts
+npm run db:generate
+npm run db:push
+npm run db:studio
+```
 
-# 24 player accounts. Requires SEED_BULK_PLAYERS_PASSWORD (or SEED_PLAYER_PASSWORD), DATABASE_URL.
+Health check:
+
+```text
+GET /api/health/db
+```
+
+## Seeding
+
+Seed the organization/admin:
+
+```bash
+npx tsx scripts/seed.ts
+```
+
+Seed 24 demo players:
+
+```bash
 npm run seed:players24
 ```
 
-Also set `SESSION_SECRET` (and related auth env) as needed for login in your environment.
+Equivalent direct command:
+
+```bash
+npx tsx scripts/seed-24-players.ts
+```
+
+## Scripts
+
+```bash
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run db:generate
+npm run db:push
+npm run db:studio
+npm run seed:players24
+```

@@ -42,27 +42,11 @@ export interface GhostCourt {
   slots: CourtSlot[];
 }
 
-export interface MatchResultPayload {
-  winners: [string, string];
-  losers: [string, string];
-  winnerScore: number;
-  loserScore: number;
-}
-
 /** Admin records which side won; winners/losers are derived from court slots (top = slots 1–2, bottom = slots 3–4). */
 export interface CourtResultDraft {
   winnerSide: "top" | "bottom";
-  winnerScore: number;
-  loserScore: number;
-}
-
-export interface MatchLedgerEntry {
-  id: string;
-  createdAt: number;
-  winners: [string, string];
-  losers: [string, string];
-  winnerScore: number;
-  loserScore: number;
+  winnerScore: number | "";
+  loserScore: number | "";
 }
 
 export interface SnapshotPlayerStat {

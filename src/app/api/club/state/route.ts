@@ -92,7 +92,7 @@ export async function GET() {
       slotNumber: p.slotNumber,
     }));
 
-    const mapped = liveBoardFromPlacements(placements, roster, usersById);
+    const mapped = liveBoardFromPlacements(placements, roster);
     activeCourts = mapped.activeCourts;
     ghostCourts = mapped.ghostCourts;
     sessionMembers = mapped.sessionMembers;
@@ -105,7 +105,7 @@ export async function GET() {
     .orderBy(desc(sessionSnapshots.createdAt));
 
   const snapshotIds = snaps.map((s) => s.id);
-  let statsBySnap = new Map<string, { userId: string; matchesPlayed: number; wins: number; losses: number }[]>();
+  const statsBySnap = new Map<string, { userId: string; matchesPlayed: number; wins: number; losses: number }[]>();
   if (snapshotIds.length > 0) {
     const statsRows = await db
       .select()

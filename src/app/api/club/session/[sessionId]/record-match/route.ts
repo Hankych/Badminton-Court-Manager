@@ -73,7 +73,7 @@ export async function POST(request: Request, ctx: Ctx) {
   const profileRows = await db.select().from(profiles).where(eq(profiles.organizationId, auth.oid));
   const usersById = new Map(profileRows.map((p) => [p.id, profileRowToUser(p)]));
 
-  const { activeCourts, ghostCourts } = liveBoardFromPlacements(placements, roster, usersById);
+  const { activeCourts, ghostCourts } = liveBoardFromPlacements(placements, roster);
   const court = activeCourts.find((c) => c.index === courtIndex);
   if (!court) {
     return NextResponse.json({ error: "court_not_found" }, { status: 400 });

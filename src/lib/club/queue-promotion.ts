@@ -46,12 +46,3 @@ export function promoteQueueAfterFinish(ghostPrev: GhostCourt[]): { fillSlots: C
   return { fillSlots, newGhost };
 }
 
-export function collectUserIdsFromGhostCourts(ghosts: GhostCourt[]): Set<string> {
-  const ids = new Set<string>();
-  for (const gc of ghosts) {
-    for (const s of gc.slots) {
-      if (s.userId) ids.add(s.userId);
-    }
-  }
-  return ids;
-}
